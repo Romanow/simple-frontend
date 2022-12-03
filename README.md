@@ -1,3 +1,12 @@
 # Simple Frontend
 
-Проект создан с помощью [Create React App](https://github.com/facebook/create-react-app).
+### Сборка и локальный запуск
+
+```shell
+# устанавливаем зависимости
+$ npm install
+# собираем проект
+$ npm run dev
+# запускаем 
+$ dcoker compose postgres simple-backend -d
+```
