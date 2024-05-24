@@ -1,37 +1,56 @@
-version: "3.8"
+version: "3.9"
 services:
   postgres:
-    image: library/postgres:13
+    image: postgres:15
     container_name: postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: "postgres"
-      POSTGRES_DB: postgres
-    volumes:
-      - db-data:/var/lib/postgresql/data
-      - ./postgres/:/docker-entrypoint-initdb.d/
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: simple_backend
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
 
   simple-backend:
-    image: romanowalex/simple-backend:v1.0
+    image: romanowalex/simple-backend:v2.0
     container_name: simple-backend
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD", "curl", "--silent", "--fail", "http://localhost:8080/backend/manage/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   simple-frontend:
     build: .
-    image: romanowalex/simple-frontend:v1.0
+    image: romanowalex/simple-frontend:v2.0
     container_name: simple-frontend
-    restart: on-failure
+    environment:
+      BACKEND_HOST: simple-backend
+    healthcheck:
+      test: "curl --fail http://localhost || exit 1"
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "3000:80"
     depends_on:
-      - simple-backend
+      simple-backend:
+        condition: service_healthy
 
 volumes:
   db-data:

@@ -9,6 +9,6 @@
 $ npm install
 # собираем проект
 $ npm run dev
-# запускаем 
+# запускаем
 $ dcoker compose postgres simple-backend -d
 ```
